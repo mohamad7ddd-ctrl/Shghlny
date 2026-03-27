@@ -4,31 +4,49 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 
 export default function Register() {
-  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
   const [userType, setUserType] = useState('client')
+  const [jobTitle, setJobTitle] = useState('')
+  const [yearsExperience, setYearsExperience] = useState('')
+  const [neighborhood, setNeighborhood] = useState('')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [bio, setBio] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const { signUp } = useAuth()
   const router = useRouter()
+
+  // تحويل رقم الهاتف إلى إيميل وهمي
+  const getEmailFromPhone = (phoneNumber) => {
+    return `${phoneNumber}@shghlny.local`
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
+    const email = getEmailFromPhone(phone)
+
     const { error } = await signUp(email, password, {
       full_name: fullName,
-      phone_number: phoneNumber,
-      user_type: userType
+      phone_number: phone,
+      user_type: userType,
+      job_title: userType === 'worker' ? jobTitle : null,
+      years_experience: userType === 'worker' ? parseInt(yearsExperience) : null,
+      neighborhood: neighborhood,
+      min_price: userType === 'worker' ? parseFloat(minPrice) : null,
+      max_price: userType === 'worker' ? parseFloat(maxPrice) : null,
+      bio: userType === 'worker' ? bio : null
     })
 
     if (error) {
       setError(error.message)
     } else {
-      router.push('/')
+      router.push('/login')
     }
     setLoading(false)
   }
@@ -50,58 +68,50 @@ export default function Register() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700">
                 الاسم الكامل
               </label>
               <input
-                id="fullName"
-                name="fullName"
                 type="text"
                 required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 placeholder="الاسم الكامل"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700">
                 رقم الهاتف
               </label>
               <input
-                id="phoneNumber"
-                name="phoneNumber"
                 type="tel"
                 required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 placeholder="09xxxxxxxx"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                البريد الإلكتروني
+              <label className="block text-sm font-medium text-gray-700">
+                الحي / المنطقة
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                type="text"
                 required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="example@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                placeholder="مثال: الوعر، الزهراء، ..."
+                value={neighborhood}
+                onChange={(e) => setNeighborhood(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="userType" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700">
                 نوع الحساب
               </label>
               <select
-                id="userType"
-                name="userType"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 value={userType}
                 onChange={(e) => setUserType(e.target.value)}
               >
@@ -109,16 +119,83 @@ export default function Register() {
                 <option value="worker">عامل</option>
               </select>
             </div>
+
+            {userType === 'worker' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    المهنة (اكتبها بحرية)
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="مثال: دهان، سباك، كهربائي، عزل..."
+                    value={jobTitle}
+                    onChange={(e) => setJobTitle(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    سنوات الخبرة
+                  </label>
+                  <input
+                    type="number"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="عدد السنوات"
+                    value={yearsExperience}
+                    onChange={(e) => setYearsExperience(e.target.value)}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      السعر الأدنى (ل.س)
+                    </label>
+                    <input
+                      type="number"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="مثال: 50000"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      السعر الأعلى (ل.س)
+                    </label>
+                    <input
+                      type="number"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="مثال: 150000"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    نبذة عني
+                  </label>
+                  <textarea
+                    rows="3"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="اكتب عن خبراتك ومهاراتك..."
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700">
                 كلمة المرور
               </label>
               <input
-                id="password"
-                name="password"
                 type="password"
                 required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                 placeholder="كلمة المرور"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -132,17 +209,15 @@ export default function Register() {
             </div>
           )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading ? 'جاري الإنشاء...' : 'إنشاء حساب'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {loading ? 'جاري الإنشاء...' : 'إنشاء حساب'}
+          </button>
         </form>
       </div>
     </div>
   )
-}
+  }
